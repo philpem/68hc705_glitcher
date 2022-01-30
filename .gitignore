@@ -52,7 +52,6 @@ output_files/
 
 # software binary files
 
-/*
 !/*.gitignore
 ##
 !*.qpf
