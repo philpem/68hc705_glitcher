@@ -106,11 +106,17 @@ void loop() {
 				delay(40);
 	
 				if (S_CPU.available() > 3) {
+					uint8_t n = 0;
 					Serial.println(F("--> DATA RECEIVED"));
 					while (true) {
+						while (S_CPU.available() == 0);
 						uint8_t databyte = S_CPU.read();
 						Serial.print(databyte, HEX);
 						Serial.print(F(" "));
+						if (++n == 32) {
+							Serial.println();
+							n = 0;
+						}
 					}
 				}
 			}
