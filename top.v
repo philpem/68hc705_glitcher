@@ -30,8 +30,8 @@ input	DIL_13,		// SPI SDI
 	DIL_21,
 output DIL_22,
 output DIL_23,
-output DIL_24,
 */
+output DIL_24,
 output DIL_25,		// glitch trigger
 output DIL_26,		// MCU clock out
 output DIL_27,		// synchronised nrst
@@ -69,7 +69,7 @@ output _PGND2		// tie to GND
 	wire [3:0]	cfg_glitchstart	= spi_reg[3:0];		// glitch start time
 	wire [3:0]	cfg_glitchstop		= spi_reg[7:4];		// glitch stop time
 	wire [6:0]	cfg_clkcnt			= spi_reg[14:8];		// number of (normal) clocks before enabling glitch
-	wire			cfg_glitchenable	= spi_reg[15];			// enable glitch 1=yes
+	wire			cfg_glitchenable	= spi_reg[15];			// enable clock glitch 1=yes
 	
 	
 	//////////////////
@@ -99,7 +99,7 @@ output _PGND2		// tie to GND
 	wire NRST = DIL_3;
 
 	reg nrst_sync_r;
-	always @(negedge clk_out) begin
+	always @(posedge clk_out) begin
 		nrst_sync_r <= NRST;
 	end
 
@@ -130,9 +130,21 @@ output _PGND2		// tie to GND
 
 	
 	//////////////////
+	// glitch delay to allow glitch to straddle l->h edge of next pulse
+
+	wire gxin = !cfg_glitchenable && (glitch && glitch_trigger);
+	reg[3:0] gsr;
+	always @(posedge MCLK) begin
+		gsr <= {gsr[2:0], gxin};
+	end
+	wire gxout = gsr[3];
+	
+	
+	//////////////////
 	// glitch generator
 	
-	assign DIL_25 = cfg_glitchenable & glitch_trigger;
 	assign DIL_26 = cfg_glitchenable ? clk_out ^ (glitch && glitch_trigger) : clk_out;
+	assign DIL_25 = cfg_glitchenable & glitch_trigger;
+	assign DIL_24 = gxout; //!cfg_glitchenable && (glitch && glitch_trigger);
 	
 endmodule
