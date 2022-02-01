@@ -12,11 +12,14 @@
 // Serial I/O port linked to CPU
 #define S_CPU		Serial1
 
+// set to 1 for power glitching, 0 for clock glitching
+#define POWER_GLITCH 1
+
 void sendGlitchConfig(uint8_t clockCount, uint8_t glitchStart, uint8_t glitchStop) 
 {
 	uint16_t shiftval;
 
-	shiftval = (glitchStart & 0x0F) | ((glitchStop & 0x0F) << 4) | ((clockCount & 0x7F) << 8) | 0x8000;
+	shiftval = (glitchStart & 0x0F) | ((glitchStop & 0x0F) << 4) | ((clockCount & 0x7F) << 8) | (POWER_GLITCH ? 0 : 0x8000);
 
 	digitalWrite(P_SPI_NRESET, LOW);
 	digitalWrite(P_SPI_NRESET, HIGH);
@@ -59,14 +62,14 @@ void setup() {
 // Number of clock phases (depends on the clock divide ratio)
 #define NPHASES 16
 // Maximum glitch position
-#define POSMAX 31
+#define POSMAX 30
 // Minimum glitch position
-#define POSMIN 21
+#define POSMIN 20
 
 // Minimum glitch width
 #define WIDMIN 0
 // Maximum glitch width
-#define WIDMAX 8
+#define WIDMAX 15
 
 void loop() {
 
@@ -75,7 +78,7 @@ void loop() {
 
 	for (uint8_t glitchPos = POSMAX; glitchPos > POSMIN; glitchPos--) {
 		for (uint8_t glitchPhase = 0; glitchPhase < NPHASES; glitchPhase++) {		
-			for (uint8_t glitchWidth = WIDMIN; glitchWidth < WIDMAX; glitchWidth++) {
+			for (uint8_t glitchWidth = WIDMIN; glitchWidth < (WIDMAX-glitchPhase); glitchWidth++) {
 				// hold chip in reset
 				digitalWrite(P_CPURESET, LOW);
 	
@@ -119,6 +122,8 @@ void loop() {
 						}
 					}
 				}
+
+				//delay(200);
 			}
 		}
 	}
