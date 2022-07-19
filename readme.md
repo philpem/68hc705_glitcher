@@ -83,7 +83,7 @@ There is, however, a sting in the tail: the 68HC05C8 also has an internal reset 
 2:1 divide ratio).
 
 Getting around the power-up timer proved simple: the timer is started on the high-to-low edge of `/RESET`, and the output of the timer is logically `AND`-ed with
-the incoming reset signal. That means that to release the CPU from reset, the timer must have expired, and the 
+the incoming reset signal. That means that to release the CPU from reset, the timer must have expired, and the `/RESET` line must be inactive.
 
 To remove the timer's influence from our cycle counts, we need to hold the CPU in reset for at least 8192 cycles of the `CLK1` input before releasing the reset pin
 and allowing the CPU to start executing code.
